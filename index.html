@@ -11,10 +11,58 @@
             <header>
               <a class="logo" href="/">News Demo</a>
               <form action="/search" method="GET">
-                <input autofocus class="search-input" value="" placeholder="Enter a news topic" type="search" name="q">
+                <input autofocus class="search-input" value="{{ .SearchKey }}" placeholder="Enter a news topic" type="search" name="q">
               </form>
               <a href="https://github.com/Daniil-8bit/GoProjects" class="button github-button">View on Github</a>
             </header>
+            <section class="container">
+              <div class="result-count">
+                {{ if (gt .Results.TotalResults 0) }}
+                <p><strong>{{ .Results.TotalResults }}</strong> were found!</p>
+                {{ else if (eq .Results.TotalResults 0) }}
+                <p>No were articles found with you query: <strong>{{ .SearchKey }}</strong></p>
+                {{ end }}
+              </div>
+              <ul class="search-results">
+                {{ range .Results.Articles }}
+                  <li class="news-article">
+                    <div>
+                      <a target="_blank" rel="noreferrer noopener" href="{{.URL}}">
+                        <h3 class="title">{{.Title }}</h3>
+                      </a>
+                      <p class="description">{{ .Description }}</p>
+                      <div class="metadata">
+                        <p class="source">{{ .Source.Name }}</p>
+                        <time class="published-date">{{ .FormatPublishedDate }}</time>
+                      </div>
+                    </div>
+                    <img class="article-image" src="{{ .URLToImage }}">
+                  </li>
+                {{ end }}
+              </ul>
+            </section>
           </main>
+          <!--<nav>
+            <h1>Navigation</h1>
+          </nav>
+          <div>
+            <form action="/addInfo" method="POST">
+              <label for="">Name:</label><br>
+              <input type="text" id="name" name="name"><br>
+              <label for="">Surname:</label><br>
+              <input type="text" id="surname" name="surname"><br>
+              <label for="">Phone number:</label><br>
+              <input type="tel" id="phoneNumber" name="phoneNumber"><br>
+              <label for="">Email:</label><br>
+              <input type="email" id="email" name="email"><br><br>
+              <input type="submit" value="Submit" name="submitButton" id="submitButton">
+            </form>
+          </div>
+          <section>
+            <h1>Section2</h1>
+          </section>
+          <footer>
+            <h1>Footer</h1>
+          </footer>-->
     </body>
 </html>
