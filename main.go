@@ -109,6 +109,10 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 
 	searchLine.TotalPages = int(math.Ceil(float64(searchLine.Results.TotalResults / pageSize)))
 
+	if ok := !searchLine.IsLastPage(); ok {
+		searchLine.NextPage++
+	}
+
 	err = tpl.Execute(w, searchLine)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -147,4 +151,20 @@ type Search struct {
 func (a *Article) FormatPublishedDate() string {
 	year, month, day := a.PublishedAt.Date()
 	return fmt.Sprintf("%d %v, %d", day, month, year)
+}
+
+func (s *Search) IsLastPage() bool {
+	return s.NextPage >= s.TotalPages
+}
+
+func (s *Search) CurrentPage() int {
+	if s.NextPage == 1 {
+		return s.NextPage
+	}
+
+	return s.NextPage - 1
+}
+
+func (s *Search) PreviousPage() int {
+	return s.CurrentPage() - 1
 }

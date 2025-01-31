@@ -18,11 +18,20 @@
             <section class="container">
               <div class="result-count">
                 {{ if (gt .Results.TotalResults 0) }}
-                <p><strong>{{ .Results.TotalResults }}</strong> were found!</p>
+                <p><strong>{{ .Results.TotalResults }}</strong> articles were found! Page <strong>{{.CurrentPage}}</strong> out of <strong>{{.TotalPages}}</strong></p>
                 {{ else if (eq .Results.TotalResults 0) }}
-                <p>No were articles found with you query: <strong>{{ .SearchKey }}</strong></p>
+                <p>No articles were found with you query: <strong>{{ .SearchKey }}</strong></p>
                 {{ end }}
               </div>
+              <div class="pagination">
+                {{if ge .CurrentPage 2}}
+                <a href="/search?q={{ .SearchKey }}&page={{ .PreviousPage }}" class="button previous-button">Previous</a>
+                {{end}}
+                {{if eq .IsLastPage false}}
+                <a href="/search?q={{ .SearchKey }}&page={{ .NextPage }}" class="button next-button" style="float: right;">Next</a>
+                {{end}}
+              </div>
+              <br><br>
               <ul class="search-results">
                 {{ range .Results.Articles }}
                   <li class="news-article">
