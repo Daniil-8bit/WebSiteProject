@@ -37,11 +37,19 @@ func main() {
 	mux.HandleFunc("/general", generalPageHandler)
 	mux.HandleFunc("/contacts", contactsPageHandler)
 	mux.HandleFunc("/search", searchHandler)
+	mux.HandleFunc("/login", loginPageHandler)
+	mux.HandleFunc("/checklogin", checkLoginHandler)
+	mux.HandleFunc("/register", registerPageHandler)
+	mux.HandleFunc("/registerData", registerUserHandler)
 
 	http.ListenAndServe(":"+port, mux)
 }
 
 var tpl = template.Must(template.ParseFiles("index.html"))
+var tplContacts = template.Must(template.ParseFiles("contacts.html"))
+var tplGeneral = template.Must(template.ParseFiles("general.html"))
+var tplLogin = template.Must(template.ParseFiles("login.html"))
+var tplRegister = template.Must(template.ParseFiles("register.html"))
 var apiKey *string
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
@@ -51,11 +59,23 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func generalPageHandler(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("<h3>This is general page!</h3>"))
+	//w.Write([]byte("<p>This is general page!</p>"))
+
+	tplGeneral.Execute(w, nil)
 }
 
 func contactsPageHandler(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("<p>Contacts page!</p>"))
+	//w.Write([]byte("<p>Contacts page!</p>"))
+
+	tplContacts.Execute(w, nil)
+}
+
+func loginPageHandler(w http.ResponseWriter, r *http.Request) {
+	tplLogin.Execute(w, LoginStatus)
+}
+
+func registerPageHandler(w http.ResponseWriter, r *http.Request) {
+	tplRegister.Execute(w, nil)
 }
 
 func searchHandler(w http.ResponseWriter, r *http.Request) {
@@ -167,4 +187,68 @@ func (s *Search) CurrentPage() int {
 
 func (s *Search) PreviousPage() int {
 	return s.CurrentPage() - 1
+}
+
+/*type loginData struct {
+	Login    string
+	password string
+}*/
+
+var LoginStatus string
+
+func checkLoginHandler(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
+	login := r.FormValue("login")
+	password := r.FormValue("password")
+
+	fmt.Printf("User login: %s, password: %s\n", login, password)
+
+	success := checkLoginData(login, password)
+
+	if success {
+		http.Redirect(w, r, "/general", http.StatusOK)
+		LoginStatus = ""
+		fmt.Println("login status: ", LoginStatus)
+	} else {
+		http.Redirect(w, r, "/login", http.StatusOK)
+		LoginStatus = "Login or password is incorrect!"
+		fmt.Println("login status: ", LoginStatus)
+	}
+}
+
+var usersLoginData map[string]string = map[string]string{"admin": "1234"}
+
+func checkLoginData(login string, password string) bool {
+
+	value, ok := usersLoginData[login]
+	if !ok {
+		fmt.Println("No user with login: ", login)
+		return false
+	}
+
+	if password == value {
+		fmt.Println("Correct!")
+		return true
+	}
+
+	return false
+}
+
+func registerUserHandler(w http.ResponseWriter, r *http.Request) {
+
+	err := r.ParseForm()
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
+	login := r.FormValue("login")
+	password := r.FormValue("password")
+
+	usersLoginData[login] = password
+	fmt.Println(login, ":", usersLoginData[login])
 }

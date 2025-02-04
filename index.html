@@ -19,7 +19,7 @@
               <div class="result-count">
                 {{ if (gt .Results.TotalResults 0) }}
                 <p><strong>{{ .Results.TotalResults }}</strong> articles were found! Page <strong>{{.CurrentPage}}</strong> out of <strong>{{.TotalPages}}</strong></p>
-                {{ else if (eq .Results.TotalResults 0) }}
+                {{ else if and (eq .Results.TotalResults 0) (ne .SearchKey "") }}
                 <p>No articles were found with you query: <strong>{{ .SearchKey }}</strong></p>
                 {{ end }}
               </div>
