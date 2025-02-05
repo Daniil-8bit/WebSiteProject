@@ -30,10 +30,10 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	fs := http.FileServer(http.Dir(""))
-	mux.Handle("/", http.StripPrefix("", fs))
+	//fs := http.FileServer(http.Dir(""))
+	//mux.Handle("/", http.StripPrefix("", fs))
 
-	//mux.HandleFunc("/", indexHandler)
+	mux.HandleFunc("/", startPageHandler)
 	mux.HandleFunc("/general", generalPageHandler)
 	mux.HandleFunc("/contacts", contactsPageHandler)
 	mux.HandleFunc("/search", searchHandler)
@@ -41,6 +41,7 @@ func main() {
 	mux.HandleFunc("/checklogin", checkLoginHandler)
 	mux.HandleFunc("/register", registerPageHandler)
 	mux.HandleFunc("/registerData", registerUserHandler)
+	mux.HandleFunc("/index", indexHandler)
 
 	http.ListenAndServe(":"+port, mux)
 }
@@ -71,11 +72,56 @@ func contactsPageHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func loginPageHandler(w http.ResponseWriter, r *http.Request) {
-	tplLogin.Execute(w, LoginStatus)
+	err := r.ParseForm()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
+	login := r.FormValue("login")
+	password := r.FormValue("password")
+
+	fmt.Printf("User login: %s, password: %s\n", login, password)
+
+	success := 0
+	if login != "" && password != "" {
+		if checkLoginData(login, password) {
+			success = 1
+		} else {
+			success = 2
+		}
+	} else {
+		success = 0
+	}
+	fmt.Println("Success: ", success)
+
+	if success == 1 {
+		http.Redirect(w, r, "/index", http.StatusSeeOther)
+	}
+
+	tplLogin.Execute(w, success)
 }
 
 func registerPageHandler(w http.ResponseWriter, r *http.Request) {
+	//err := r.ParseForm()
+
+	/*if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	}*/
+
+	login := r.FormValue("login")
+	password := r.FormValue("password")
+
+	if login != "" && password != "" {
+		usersLoginData[login] = password
+	}
+
+	fmt.Println(login, ":", usersLoginData[login])
+
 	tplRegister.Execute(w, nil)
+}
+
+func startPageHandler(w http.ResponseWriter, r *http.Request) {
+	http.Redirect(w, r, "/login", http.StatusSeeOther)
 }
 
 func searchHandler(w http.ResponseWriter, r *http.Request) {
@@ -194,7 +240,7 @@ func (s *Search) PreviousPage() int {
 	password string
 }*/
 
-var LoginStatus string
+var LoginStatus string = "Some text!"
 
 func checkLoginHandler(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
@@ -207,17 +253,21 @@ func checkLoginHandler(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Printf("User login: %s, password: %s\n", login, password)
 
-	success := checkLoginData(login, password)
+	//success := checkLoginData(login, password)
 
-	if success {
+	http.Redirect(w, r, "/login", http.StatusOK)
+
+	/*if success {
 		http.Redirect(w, r, "/general", http.StatusOK)
 		LoginStatus = ""
+		fmt.Println("Success: ", success)
 		fmt.Println("login status: ", LoginStatus)
 	} else {
 		http.Redirect(w, r, "/login", http.StatusOK)
 		LoginStatus = "Login or password is incorrect!"
+		fmt.Println("Success: ", success)
 		fmt.Println("login status: ", LoginStatus)
-	}
+	}*/
 }
 
 var usersLoginData map[string]string = map[string]string{"admin": "1234"}
@@ -251,4 +301,8 @@ func registerUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	usersLoginData[login] = password
 	fmt.Println(login, ":", usersLoginData[login])
+
+	//w.Write([]byte("<h1>You have successfully registered!</h1>"))
+
+	http.Redirect(w, r, "/login", http.StatusSeeOther)
 }
